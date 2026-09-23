@@ -31,7 +31,7 @@ describe('Attempt API', () => {
   let userB: { id: string };
   let studentA: { id: string };
   let studentB: { id: string };
-  let frontendCompetency: { key: string };
+  let frontendCompetency: { id: string; key: string };
 
   let tokenA: string;
   let tokenB: string;

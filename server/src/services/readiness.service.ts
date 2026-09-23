@@ -1,12 +1,6 @@
 import { PrismaClient } from '@prisma/client';
-
+import { getReadinessStatus, } from '../utils/readiness.util';
 const prisma = new PrismaClient();
-
-const READINESS_THRESHOLDS = {
-  READY: 80,
-  NEARLY_READY: 65,
-  DEVELOPING: 50,
-};
 
 export async function calculateReadiness(
   studentId: string,
@@ -76,18 +70,7 @@ export async function calculateReadiness(
 
   const roundedScore = Number(score.toFixed(2));
 
-  let status: 'READY' | 'NEARLY_READY' | 'DEVELOPING' | 'NEEDS_PREPARATION';
-
-  if (roundedScore >= READINESS_THRESHOLDS.READY) {
-    status = 'READY';
-  } else if (roundedScore >= READINESS_THRESHOLDS.NEARLY_READY) {
-    status = 'NEARLY_READY';
-  } else if (roundedScore >= READINESS_THRESHOLDS.DEVELOPING) {
-    status = 'DEVELOPING';
-  } else {
-    status = 'NEEDS_PREPARATION';
-  }
-
+  const status = getReadinessStatus(roundedScore);
   return {
     score: roundedScore,
     status,

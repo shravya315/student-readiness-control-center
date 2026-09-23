@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
+import { getReadinessStatus } from '../utils/readiness.util';
 
 const prisma = new PrismaClient();
 
@@ -277,32 +278,10 @@ export async function createAttempt({
 
         throw error;
       }
-
-      let status:
-        | 'READY'
-        | 'NEARLY_READY'
-        | 'DEVELOPING'
-        | 'NEEDS_PREPARATION';
-
-      if (currentScore === null) {
-        status = 'NEEDS_PREPARATION';
-      } else if (currentScore >= 80) {
-        status = 'READY';
-      } else if (currentScore >= 65) {
-        status = 'NEARLY_READY';
-      } else if (currentScore >= 50) {
-        status = 'DEVELOPING';
-      } else {
-        status = 'NEEDS_PREPARATION';
-      }
-
-      const readiness = {
-        score: currentScore,
-        status:
-          currentScore === null
-            ? 'INCOMPLETE'
-            : status,
-      };
+const readiness = {
+  score: currentScore,
+  status: getReadinessStatus(currentScore),
+};
 
       const response = {
         attempt,
