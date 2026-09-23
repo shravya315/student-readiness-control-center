@@ -1,0 +1,105 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Tenant {
+  id        String    @id @default(uuid())
+  name      String
+  status    String
+  users     User[]
+  students  Student[]
+  attempts  Attempt[]
+  idempotencyRecords IdempotencyRecord[]
+  outboxEvents OutboxEvent[]
+
+  createdAt DateTime  @default(now())
+}
+
+model User {
+  id        String   @id @default(uuid())
+  tenantId  String
+  email     String
+  role      String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@unique([tenantId, email])
+}
+
+model Student {
+  id           String   @id @default(uuid())
+  tenantId     String
+  email        String
+  name         String
+  currentScore Float?
+  version      Int      @default(1)
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+  attempts     Attempt[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([tenantId, name])
+  @@unique([tenantId, email])
+}
+
+model Competency {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  weight    Float
+  attempts  Attempt[]
+}
+
+model Attempt {
+  id            String      @id @default(uuid())
+  tenantId      String
+  studentId     String
+  competencyId  String
+  score         Float
+  evaluatorId   String
+  submittedAt   DateTime    @default(now())
+  voided        Boolean     @default(false)
+  tenant        Tenant      @relation(fields: [tenantId], references: [id])
+  student      Student     @relation(fields: [studentId], references: [id])
+  competency   Competency  @relation(fields: [competencyId], references: [id])
+
+  @@index([tenantId, studentId, competencyId, submittedAt, id])
+}
+
+model IdempotencyRecord {
+  id                 String   @id @default(uuid())
+  tenantId           String
+  key                String
+  requestFingerprint String
+  responseJson       Json?
+  statusCode         Int?
+  createdAt          DateTime @default(now())
+  expiresAt          DateTime
+  tenant             Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, key])
+  @@index([expiresAt])
+}
+
+model OutboxEvent {
+  id             String   @id @default(uuid())
+  tenantId       String
+  eventType      String
+  aggregateId    String
+  idempotencyKey String?
+  payload        Json
+  publishedAt    DateTime?
+  createdAt      DateTime @default(now())
+  attempts       Int      @default(0)
+  lastError      String?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([publishedAt, createdAt])
+  @@index([tenantId, aggregateId])
+}
