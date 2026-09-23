@@ -87,3 +87,16 @@ If the stored version has changed, the API returns:
 ```text
 409 VERSION_CONFLICT
 
+## Development Verification
+
+The application was verified locally using the following commands:
+
+```bash
+cd server
+npm test
+17 tests passing
+cd client
+npm test
+4 tests passing
+cd client
+npm run build
