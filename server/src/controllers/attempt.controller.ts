@@ -1,7 +1,6 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { createAttempt } from '../services/attempt.service';
-import { publishPendingOutboxEvents } from '../services/outbox.service';
 
 export async function submitAttempt(
   req: AuthenticatedRequest,

@@ -1,13 +1,21 @@
 import { Router } from 'express';
-import { listStudents, getStudent, patchStudent, getStudentActivityController } from '../controllers/student.controller';
+import {
+  listStudents,
+  getStudent,
+  patchStudent,
+  getStudentActivityController,
+} from '../controllers/student.controller';
 import { authenticate } from '../middleware/auth.middleware';
-
+import { requireRole } from '../middleware/rbac.middleware';
 
 const router = Router();
 
-router.get('/', authenticate, listStudents);
-router.get('/:id/activity', authenticate, getStudentActivityController);
-router.get('/:id', authenticate, getStudent);
-router.patch('/:id', authenticate, patchStudent);
+router.use(authenticate);
+router.use(requireRole('ADMIN', 'EVALUATOR'));
+
+router.get('/', listStudents);
+router.get('/:id/activity', getStudentActivityController);
+router.get('/:id', getStudent);
+router.patch('/:id', patchStudent);
 
 export default router;
